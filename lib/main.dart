@@ -12,7 +12,7 @@ class ExpenseTrackerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SRF 2026 Expense',
+      title: 'Sharif 2026 Expense',
       theme: ThemeData(
         primarySwatch: Colors.purple,
         appBarTheme: const AppBarTheme(
@@ -47,7 +47,7 @@ class MonthListPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SRF 2026 Expense'),
+        title: const Text('Sharif 2026 Expense'),
         centerTitle: true,
       ),
       body: ListView.builder(
