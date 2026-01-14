@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   runApp(const ExpenseTrackerApp());
@@ -86,6 +88,20 @@ class Expense {
   double amount;
 
   Expense({required this.cause, required this.amount});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cause': cause,
+      'amount': amount,
+    };
+  }
+
+  factory Expense.fromMap(Map<String, dynamic> map) {
+    return Expense(
+      cause: map['cause'] ?? '',
+      amount: (map['amount'] ?? 0).toDouble(),
+    );
+  }
 }
 
 class MonthExpensePage extends StatefulWidget {
@@ -102,11 +118,38 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
   final List<Expense> filteredExpenses = [];
   bool isSearching = false;
   final TextEditingController searchController = TextEditingController();
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-    filteredExpenses.addAll(expenses);
+    _initializePrefs();
+  }
+
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    await loadExpenses();
+  }
+
+  Future<void> saveExpenses() async {
+    final List<String> expensesJson = expenses
+        .map((expense) => jsonEncode(expense.toMap()))
+        .toList();
+    await prefs.setStringList('expenses_${widget.month}', expensesJson);
+  }
+
+  Future<void> loadExpenses() async {
+    final List<String>? expensesJson = prefs.getStringList('expenses_${widget.month}');
+    if (expensesJson != null) {
+      setState(() {
+        expenses.clear();
+        for (String json in expensesJson) {
+          expenses.add(Expense.fromMap(jsonDecode(json)));
+        }
+        filteredExpenses.clear();
+        filteredExpenses.addAll(expenses);
+      });
+    }
   }
 
   void addExpense() {
@@ -116,6 +159,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
         filteredExpenses.add(expenses.last);
       }
     });
+    saveExpenses();
   }
 
   void removeExpense(int index) {
@@ -124,6 +168,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
       expenses.remove(expenseToRemove);
       filteredExpenses.removeAt(index);
     });
+    saveExpenses();
   }
 
   double getTotalAmount() {
@@ -218,6 +263,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
                                   ),
                                   onChanged: (value) {
                                     expenses[expenseIndex].cause = value;
+                                    saveExpenses();
                                   },
                                 ),
                               ),
@@ -237,6 +283,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
                                     expenses[expenseIndex].amount =
                                         double.tryParse(value) ?? 0;
                                     setState(() {});
+                                    saveExpenses();
                                   },
                                 ),
                               ),
