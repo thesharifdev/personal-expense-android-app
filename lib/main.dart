@@ -116,6 +116,8 @@ class MonthExpensePage extends StatefulWidget {
 class _MonthExpensePageState extends State<MonthExpensePage> {
   final List<Expense> expenses = [];
   final List<Expense> filteredExpenses = [];
+  final List<TextEditingController> causeControllers = [];
+  final List<TextEditingController> amountControllers = [];
   bool isSearching = false;
   final TextEditingController searchController = TextEditingController();
   late SharedPreferences prefs;
@@ -143,8 +145,13 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
     if (expensesJson != null) {
       setState(() {
         expenses.clear();
+        causeControllers.clear();
+        amountControllers.clear();
         for (String json in expensesJson) {
-          expenses.add(Expense.fromMap(jsonDecode(json)));
+          final expense = Expense.fromMap(jsonDecode(json));
+          expenses.add(expense);
+          causeControllers.add(TextEditingController(text: expense.cause));
+          amountControllers.add(TextEditingController(text: expense.amount == 0 ? '' : expense.amount.toString()));
         }
         filteredExpenses.clear();
         filteredExpenses.addAll(expenses);
@@ -155,6 +162,8 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
   void addExpense() {
     setState(() {
       expenses.add(Expense(cause: '', amount: 0));
+      causeControllers.add(TextEditingController());
+      amountControllers.add(TextEditingController());
       if (!isSearching) {
         filteredExpenses.add(expenses.last);
       }
@@ -165,7 +174,10 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
   void removeExpense(int index) {
     setState(() {
       final expenseToRemove = filteredExpenses[index];
+      final expenseIndex = expenses.indexOf(expenseToRemove);
       expenses.remove(expenseToRemove);
+      causeControllers.removeAt(expenseIndex);
+      amountControllers.removeAt(expenseIndex);
       filteredExpenses.removeAt(index);
     });
     saveExpenses();
@@ -253,6 +265,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
                               Expanded(
                                 flex: 2,
                                 child: TextField(
+                                  controller: causeControllers[expenseIndex],
                                   decoration: const InputDecoration(
                                     labelText: 'Expense Cause',
                                     border: OutlineInputBorder(),
@@ -270,6 +283,7 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: TextField(
+                                  controller: amountControllers[expenseIndex],
                                   decoration: const InputDecoration(
                                     labelText: 'Amount',
                                     border: OutlineInputBorder(),
@@ -351,6 +365,12 @@ class _MonthExpensePageState extends State<MonthExpensePage> {
   @override
   void dispose() {
     searchController.dispose();
+    for (var controller in causeControllers) {
+      controller.dispose();
+    }
+    for (var controller in amountControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 }
