@@ -12,9 +12,9 @@ class ExpenseTrackerApp extends StatelessWidget {
     return MaterialApp(
       title: 'SRF 2026 Expense',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.purple,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.purple,
           foregroundColor: Colors.white,
         ),
       ),
@@ -46,6 +46,7 @@ class MonthListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SRF 2026 Expense'),
+        centerTitle: true,
       ),
       body: ListView.builder(
         itemCount: months.length,
